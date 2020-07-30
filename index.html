@@ -1,0 +1,294 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <title>Udhyama</title>
+</head>
+<body class="grey lighten-3"">
+
+  <!-- NAVBAR -->
+  <nav class="z-depth-0 grey lighten-4">
+    <div class="nav-wrapper container">
+      <a href="#" class="brand-logo">
+        <img src="img/Udhyama.jpg" style="width: 180px; height: 170px; margin-top: 10px;">
+      </a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li class="logged-in" style="display: none;">
+            <a href="#" class="grey-text modal-trigger" data-target="modal-account">Account</a>
+          </li>
+          <li class="logged-in" style="display: none;">
+            <a href="#" class="grey-text" id="logout">Logout</a>
+          </li>
+          <li class="admin" style="display: none;">
+            <a href="#" class="grey-text modal-trigger" data-target="modal-create">Create Guide</a>
+          </li>
+          <li class="logged-out" style="display: none;">
+            <a href="#" class="grey-text modal-trigger" data-target="modal-login">Login</a>
+          </li>
+          <li class="logged-out" style="display: none;">
+            <a href="#" class="grey-text modal-trigger" data-target="modal-signup">Sign up</a>
+          </li>
+        </span>
+      </ul>
+    </div>
+  </nav>
+    <!-- File Upload Modal -->
+    <div class="center-align">
+    <h4>File Upload</h4>
+        <input type="file" id="photo" />
+        <button class="btn btn-outline-success" onclick="uploadImage()">Upload Image</button>
+      </div>
+      <hr />
+  <!-- File View Modal -->
+  <div class="center-align">
+      <h4>View Uploaded Files</h4>
+      <img id="image" />
+</div>
+<hr />
+
+<!-- Capture element -->
+<div class="center-align">
+<video id="video" width="400" height="400" autoplay controls playsinline></video>
+<button id="snap">Capture</button>
+<canvas id="canvas" width="500" height="450" ></canvas>
+</div>
+<hr />
+
+  <!-- ADMIN ACTIONS -->
+  <form class="center-align admin-actions admin" style="margin: 40px auto; max-width: 300px; display: none;">
+    <input type="email" placeholder="User email" id="admin-email" required />
+    <button class="btn-small yellow darken-2 z-depth-0">Make admin</button>
+  </form>
+
+
+  <!-- SIGN UP MODAL -->
+  <div id="modal-signup" class="modal">
+    <div class="modal-content">
+      <h4>Sign up</h4><br />
+      <form id="signup-form">
+        <div class="input-field">
+          <input type="email" id="signup-email" required />
+          <label for="signup-email">Email address</label>
+        </div>
+        <div class="input-field">
+          <input type="password" id="signup-password" required />
+          <label for="signup-password">Choose password</label>
+        </div>
+        <div class="input-field">
+          <input type="text" id="signup-bio" required />
+          <label for="signup-bio">One Line Bio</label>
+        </div>
+        <button class="btn yellow darken-2 z-depth-0">Sign up</button>
+        <p class="error pink-text center-align"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div id="modal-login" class="modal">
+    <div class="modal-content">
+      <h4>Login</h4><br />
+      <form id="login-form">
+        <div class="input-field">
+          <input type="email" id="login-email" required />
+          <label for="login-email">Email address</label>
+        </div>
+        <div class="input-field">
+          <input type="password" id="login-password" required />
+          <label for="login-password">Your password</label>
+        </div>
+        <button class="btn yellow darken-2 z-depth-0">Login</button>
+        <p class="error pink-text center-align"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ACCOUNT MODAL -->
+  <div id="modal-account" class="modal">
+    <div class="modal-content center-align">
+      <h4>Account details</h4><br />
+      <div class="account-details"></div>
+    </div>
+  </div>
+
+  <!-- CREATE GUIDE MODAL -->
+  <div id="modal-create" class="modal">
+    <div class="modal-content">
+      <h4>Create Guide</h4><br />
+      <form id="create-form">
+        <div class="input-field">
+          <input type="text" id="title" required>
+          <label for="title">Guide Title</label>
+        </div>
+        <div class="input-field">
+          <textarea id="content" class="materialize-textarea" required></textarea>
+          <label for="content">Guide Content</label>
+        </div>
+        <button class="btn yellow darken-2 z-depth-0">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- GUIDE LIST -->
+  <div class="container" style="margin-top: 40px;">
+    <ul class="collapsible z-depth-0 guides" style="border: none;">
+
+    </ul>
+  </div>
+  
+  <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-functions.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-storage.js"></script>
+  <script>
+
+    // Initialize Firebase
+    var config = {
+    apiKey: "AIzaSyDvMYlPZzC1X3YQaR1nn-zIlt2bd5UV4iA",
+    authDomain: "ashu-auth-dev.firebaseapp.com",
+    databaseURL: "https://ashu-auth-dev.firebaseio.com",
+    projectId: "ashu-auth-dev",
+    storageBucket: "ashu-auth-dev.appspot.com",
+    messagingSenderId: "559953713733",
+    appId: "1:559953713733:web:8ce010c732a0c1c94fa12c",
+    measurementId: "G-ZQKGP7LD34"
+  };  
+    firebase.initializeApp(config);
+
+    // make auth and firestore references
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const functions = firebase.functions();
+
+//upload Image function
+function uploadImage(){
+  const ref = firebase.storage().ref();
+  const file = document.querySelector("#photo").files[0];
+  const name = new Date() + '-' + file.name;
+  const metadata = {
+    contentType: file.type,
+  }
+  const task = ref.child(name).put(file, metadata)
+  task
+  .then(snapshot =>snapshot.ref.getDownloadURL())
+  .then(url => {
+    console.log(url);
+    alert("image upload successful");
+    //To display the image
+    const image = document.querySelector("#image");
+    image.src = url
+  })
+}
+
+//Webcam code
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const snap = document.getElementById('snap');
+
+const constraints = {
+  audio: false,
+  video: {
+    width: 400, height: 400
+  }
+}
+//Start webcam
+async function init(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    handleStream(stream);
+  } catch (error) {
+    console.log(error);
+  }
+}
+function handleStream(stream){
+  window.stream = stream;
+  video.srcObject = stream;
+}
+
+var context = canvas.getContext('2d')
+
+snap.addEventListener('click', ()=>{
+  context.drawImage(video, 0,0, 500, 450);
+  var image = new Image();
+  image.id ='pic';
+  image.src = canvas.toDataURL('image/png');
+console.log(image.src);
+var button = document.createElement('button');
+button.textContent ='Upload Image';
+document.body.appendChild(button);
+button.onClick =  ()=>{
+  const ref = firebase.storage().ref();
+  ref.child(new Date()+ "-" + "base64").putString(image.src, 'data_url')
+  .then((snapshot)=>{
+    console.log("Image Uploaded")
+    alert("Image Uploaded")
+  })
+}
+})
+
+init();
+
+  </script>
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="scripts/auth.js"></script>
+  <script src="scripts/index.js"></script>
+</body>
+</html>
+<!-- 
+    Creating cloud functions
+npm install firebase-tools -g
+firebase login --reauth //Login to g=firebase
+firebase init functions //To initialize local functions
+
+Are you ready to proceed? Yes
+
+First, let's associate this project directory with a Firebase project.
+You can create multiple project aliases by running firebase use --add,
+but for now we'll just set up a default project.
+
+Please select an option: Use an existing project
+? Select a default Firebase project for this directory: ashu-auth-dev (ashu-auth-dev)
+? What language would you like to use to write Cloud Functions? JavaScript
+? Do you want to use ESLint to catch probable bugs and enforce style? No
+? File functions/index.js already exists. Overwrite? Yes
+? Do you want to install dependencies with npm now? Yes
+
+This creates all files in the functions folder and firebase.json file and .firebaserc file
+
+After you complete the codes in functions/index.js, deploy it firebase using command
+firebase deploy --only functions
+
+Now check functions in firebase website, you will see the function you created
+-->
+
+<!-- 
+    Making data secure by changing Firestore DB rule as follows
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // match /{document=**} {
+    //   allow read, write: if request.time < timestamp.date(2020, 7, 29);
+    // }
+     //match logged in user doc in users collection
+      match /users/{userId}{
+    allow create: if request.auth.uid != null;
+    allow read: if request.auth.uid == userId;
+    }
+    // Match docs in the guides collection
+    match /guides/{guideId}{
+    allow read: if request.auth.uid != null;
+    allow write: if request.auth.token.admin == true;
+    }
+  }
+}
+
+//How to Upload files to firestore and retrieve it
+//Go to firestore storage and get started and create a bucket
+
+ -->
